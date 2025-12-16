@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Auth App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h2 {
+            color: #555;
+            margin: 25px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .endpoint-list {
+            list-style: none;
+        }
+        
+        .endpoint-list li {
+            background: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .endpoint-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        
+        .post { background: #48bb78; color: white; }
+        .get { background: #4299e1; color: white; }
+        
+        .path {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        
+        .description {
+            color: #718096;
+            font-size: 0.95em;
+            margin-top: 5px;
+        }
+        
+        .access {
+            float: right;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        
+        .public { background: #c6f6d5; color: #22543d; }
+        .private { background: #fed7d7; color: #742a2a; }
+        
+        .info-box {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            border: 1px solid #667eea30;
+        }
+        
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .test-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Express.js Authentication API</h1>
+        
+        <div class="info-box">
+            <p>🚀 Сервер успешно запущен! Используйте следующие эндпоинты для работы с API.</p>
+            <p>📚 Полная документация: <code>GET /</code> или смотрите README.md</p>
+        </div>
+        
+        <h2>🔑 Аутентификация (публичные эндпоинты)</h2>
+        <ul class="endpoint-list">
+            <li>
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/signup</span>
+                <span class="access public">Public</span>
+                <div class="description">Регистрация нового пользователя</div>
+            </li>
+            <li>
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/signin</span>
+                <span class="access public">Public</span>
+                <div class="description">Вход в систему</div>
+            </li>
+            <li>
+                <span class="method post">POST</span>
+                <span class="path">/api/auth/logout</span>
+                <span class="access public">Public</span>
+                <div class="description">Выход из системы</div>
+            </li>
+        </ul>
+        
+        <h2>👥 Пользователи (защищенные эндпоинты)</h2>
+        <ul class="endpoint-list">
+            <li>
+                <span class="method get">GET</span>
+                <span class="path">/api/users/profile</span>
+                <span class="access private">Private</span>
+                <div class="description">Получить профиль текущего пользователя</div>
+            </li>
+            <li>
+                <span class="method get">GET</span>
+                <span class="path">/api/users</span>
+                <span class="access private">Private</span>
+                <div class="description">Получить список всех пользователей</div>
+            </li>
+        </ul>
+        
+        <div class="code">
+// Пример запроса на регистрацию
+fetch('/api/auth/signup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        username: 'testuser',
+        email: 'test@example.com',
+        password: '123456'
+    })
+})
+        </div>
+        
+        <div class="test-buttons">
+            <a href="/" class="btn btn-primary">
+                📋 Основная документация
+            </a>
+            <a href="https://github.com/yourusername/express-auth-app" 
+               target="_blank" 
+               class="btn btn-secondary">
+                ⭐ GitHub репозиторий
+            </a>
+        </div>
+    </div>
+</body>
+</html>
