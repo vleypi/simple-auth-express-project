@@ -1,144 +1,63 @@
-# Express.js Authentication API
+# simple auth express project
 
-Простое и структурированное Express.js приложение с аутентификацией, JWT токенами и SQLite базой данных.
+Сервер аутентификации на Express и SQLite. Учебное задание.
 
-## Возможности
+## О приложении
 
--  Регистрация пользователей (Sign Up)
--  Вход в систему (Sign In)
--  Защищенные маршруты с JWT
--  Хеширование паролей с bcrypt
--  SQLite база данных
--  Middleware для аутентификации
+Пользователь регистрируется, входит по имени или почте и получает JWT. Токен возвращается в ответе и ставится в cookie, защищённые маршруты принимают его из cookie или из заголовка `Authorization`. Пароли хранятся в виде хешей bcrypt, токен действует 24 часа.
 
-## Быстрый старт
+Пользователи лежат в базе SQLite, файл `users.db` создаётся при первом запуске. На главной странице сервера перечислены все маршруты.
 
-### Установка
+## Маршруты
+
+| Метод | Адрес | Что делает |
+|---|---|---|
+| POST | `/api/auth/signup` | регистрация, пароль не короче 6 символов |
+| POST | `/api/auth/signin` | вход по имени или почте |
+| POST | `/api/auth/logout` | выход |
+| GET | `/api/users/profile` | профиль текущего пользователя, нужен токен |
+| GET | `/api/users` | список пользователей, нужен токен |
+
+## Как запустить
+
+Потребуются Git и Node.js 18 или новее.
 
 ```bash
-# Установи зависимости
+git clone https://github.com/vleypi/simple-auth-express-project.git
+cd simple-auth-express-project
 npm install
-
-# Запусти сервер
-npm run dev
+npm start
 ```
 
-Сервер запустится на `http://localhost:3000`
+После запуска сервер доступен по адресу http://localhost:3000. Команда `npm run dev` запускает сервер с автоперезапуском. Секрет для подписи токенов задаётся переменной `JWT_SECRET`, по умолчанию используется тестовый.
 
-##  Структура проекта
+## Структура
 
 ```
-project/
-├── server.js                    # Главный файл приложения
-├── package.json                 # Зависимости
-├── users.db                     # SQLite база (создается автоматически)
-│
+simple-auth-express-project/
+├── server.js            запуск сервера и подключение маршрутов
 ├── config/
-│   ├── database.js             # Конфигурация базы данных
-│   └── jwt.js                  # JWT настройки
-│
+│   ├── database.js      подключение к SQLite и таблица users
+│   └── jwt.js           секрет и срок действия токена
+├── routes/              маршруты авторизации и пользователей
+├── controllers/         регистрация, вход, профиль, список пользователей
 ├── middleware/
-│   └── authMiddleware.js       # Middleware для проверки токенов
-│
-├── controllers/
-│   ├── authController.js       # Логика аутентификации
-│   └── userController.js       # Логика работы с пользователями
-│
-└── routes/
-    ├── authRoutes.js           # Маршруты аутентификации
-    └── userRoutes.js           # Маршруты пользователей
+│   └── authMiddleware.js проверка токена
+├── public/              страница с описанием маршрутов
+└── package.json         зависимости и скрипты
 ```
 
-##  API Endpoints
+## Проверка
 
-### Аутентификация (публичные)
-
-
-#### Регистрация
-![Регистрация](./public/photo_1.jpg)
-
-
-#### Если пользователь уже существует:
-![Если пользователь уже существует:](./public/photo_7.jpg)
-
-
-#### Вход:
-![Вход](./public/photo_2.jpg)
-
-
-#### Если данные неверные:
-![Если данные неверные:](./public/photo_8.jpg)
-
-
-### Пользователи (защищенные)
-
-### Для доступа к защищенным маршрутам нужен JWT токен:
-```
-Authorization: Bearer YOUR_TOKEN_HERE
-```
-
-#### Получить профиль
-![Получить профиль](./public/photo_3.jpg)
-
-
-### Получить всех пользователей
-
-#### Получить всех пользователей, но без jwt
-![Получить всех пользователей, но без jwt](./public/photo_4.jpg)
-
-#### Включим наш jwt токен после аутентификация
-![Включим наш jwt токен после аутентификация](./public/photo_5.jpg)
-
-#### Получим всех пользователей
-![Получим всех пользователей](./public/photo_10.jpg)
-
-
-### Выход
-![Выход](./public/photo_6.jpg)
-
-##  Безопасность
-
-- **Пароли хешируются** с помощью bcrypt (10 раундов)
-- **JWT токены** для аутентификации (срок действия 24 часа)
-- **HTTP-only cookies** для защиты от XSS атак
-- **Middleware** для защиты приватных маршрутов
-- **Валидация данных** на стороне сервера
-
-## Конфигурация
-
-### JWT Secret
-
-По умолчанию используется тестовый секрет.
-
-В файле `config/jwt.js`:
-```javascript
-module.exports = {
-  JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-  JWT_EXPIRES_IN: '24h'
-};
-```
-
-Или через переменные окружения:
 ```bash
-export JWT_SECRET=your-super-secret-key
-npm run dev
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"username":"alice","email":"alice@example.com","password":"qwerty123"}' \
+  http://localhost:3000/api/auth/signup
+
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"qwerty123"}' \
+  http://localhost:3000/api/auth/signin
+
+curl http://localhost:3000/api/users/profile \
+  -H "Authorization: Bearer <токен из ответа>"
 ```
-
-### База данных
-
-SQLite база создается автоматически в корне проекта (`users.db`). 
-
-## Зависимости
-
-```json
-{
-  "bcrypt": "^5.1.1",
-  "cookie-parser": "^1.4.6",
-  "express": "^5.2.1",
-  "jsonwebtoken": "^9.0.3",
-  "sqlite3": "^5.1.7"
-}
-
-```
-
-Это учебный проект. Задание в университете
